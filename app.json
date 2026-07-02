@@ -1,29 +1,28 @@
 {
   "expo": {
-    "name": "framefinder",
+    "name": "FrameFinder",
     "slug": "framefinder",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "framefinder",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#0A0A0A"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
@@ -33,10 +32,28 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#0A0A0A"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FrameFinder needs access to your photos to let you upload photography spots.",
+          "cameraPermission": "FrameFinder needs camera access to capture photography spots."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "FrameFinder uses your location to tag photography spots."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "FrameFinder needs gallery access to save your share cards.",
+          "savePhotosPermission": "FrameFinder needs permission to save share cards to your gallery.",
+          "isAccessMediaLocationEnabled": true
         }
       ]
     ],
