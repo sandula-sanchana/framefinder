@@ -1,10 +1,12 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import * as FileSystem from 'expo-file-system';
-import { storage } from './config';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const MAX_DIMENSION = 2048;
 const JPEG_QUALITY = 0.85;
+
+// These are set in .env and exposed via Expo's EXPO_PUBLIC_ convention.
+const CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+const UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
 /**
  * Generates a simple UUID-like unique string for filenames.
@@ -22,62 +24,71 @@ function generateUUID(): string {
  * Returns the URI of the compressed image.
  */
 async function compressImage(localUri: string): Promise<string> {
-  const actions = [
-    {
-      resize: { width: MAX_DIMENSION },
-    },
-  ];
-
   const result = await manipulateAsync(
     localUri,
-    actions,
-    {
-      compress: JPEG_QUALITY,
-      format: SaveFormat.JPEG,
-    }
+    [{ resize: { width: MAX_DIMENSION } }],
+    { compress: JPEG_QUALITY, format: SaveFormat.JPEG }
   );
-
   return result.uri;
 }
 
 /**
- * Uploads a local image URI to Firebase Storage at the given path.
- * Compresses the image before uploading.
- * Returns the public download URL.
+ * Uploads a local image URI to Cloudinary using FileSystem.uploadAsync
+ * (multipart/form-data with an unsigned upload preset).
+ *
+ * Firebase Storage was replaced because it requires a paid plan and the
+ * Firebase JS SDK internally uses ArrayBuffer/Blob which crash on Hermes.
+ *
+ * The `path` parameter is used as a Cloudinary folder prefix, e.g. "spots".
+ * Returns the secure download URL.
  */
 export async function uploadImage(localUri: string, path: string): Promise<string> {
+  if (!CLOUD_NAME || !UPLOAD_PRESET) {
+    throw new Error(
+      'Cloudinary is not configured. Set EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME and EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET in .env'
+    );
+  }
+
   // 1. Compress & resize
   const compressedUri = await compressImage(localUri);
 
-  // 2. Convert to Blob for upload
-  const response = await fetch(compressedUri);
-  const blob = await response.blob();
+  // 2. Build a unique public_id for the uploaded asset
+  const publicId = `${path}/${generateUUID()}`;
 
-  // 3. Generate unique filename and build full storage path
-  const uuid = generateUUID();
-  const fullPath = `${path}/${uuid}.jpg`;
+  // 3. Upload via Expo FileSystem (multipart) — no ArrayBuffer involved;
+  //    works reliably on Hermes/React Native.
+  const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 
-  // 4. Upload to Firebase Storage
-  const storageRef = ref(storage, fullPath);
-  await uploadBytes(storageRef, blob);
+  const result = await FileSystem.uploadAsync(uploadUrl, compressedUri, {
+    httpMethod: 'POST',
+    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+    fieldName: 'file',
+    parameters: {
+      upload_preset: UPLOAD_PRESET,
+      public_id: publicId,
+      folder: path,
+    },
+  });
 
-  // 5. Return the public download URL
-  const downloadURL = await getDownloadURL(storageRef);
-  return downloadURL;
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(`Cloudinary upload failed [${result.status}]: ${result.body}`);
+  }
+
+  const json = JSON.parse(result.body);
+  return json.secure_url as string;
 }
 
 /**
- * Deletes an image from Firebase Storage using its public download URL.
+ * Deletes an image from Cloudinary.
+ * NOTE: Cloudinary does not allow client-side deletions without an API secret,
+ * which must never be bundled in a client app.
+ * Images uploaded with an unsigned preset remain in your Cloudinary account.
+ * If you need deletion, implement a lightweight backend endpoint that holds
+ * the API secret and calls the Cloudinary Admin API.
  */
-export async function deleteImage(downloadUrl: string): Promise<void> {
-  try {
-    // Convert download URL to a storage reference
-    const storageRef = ref(storage, downloadUrl);
-    await deleteObject(storageRef);
-  } catch (error) {
-    // If file doesn't exist, silently continue
-    console.warn('[StorageService] deleteImage failed:', error);
-  }
+export async function deleteImage(_downloadUrl: string): Promise<void> {
+  // No-op on the client side — see the JSDoc above.
+  console.warn('[Cloudinary] deleteImage: client-side deletion not supported without API secret.');
 }
 
 /**

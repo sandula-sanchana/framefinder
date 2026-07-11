@@ -1,7 +1,7 @@
 import {
   collection,
   doc,
-  addDoc,
+  setDoc,
   getDoc,
   getDocs,
   updateDoc,
@@ -122,11 +122,7 @@ export async function createSpot(
     updatedAt: now,
   };
 
-  await updateDoc(newDocRef, spotData).catch(async () => {
-    // updateDoc fails on a non-existent doc — use setDoc instead
-    const { setDoc } = await import('firebase/firestore');
-    await setDoc(newDocRef, spotData);
-  });
+  await setDoc(newDocRef, spotData);
 
   // 4. Increment owner's spotsCount
   await updateDoc(doc(db, USERS_COLLECTION, ownerId), {

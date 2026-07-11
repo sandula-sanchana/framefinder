@@ -1,20 +1,19 @@
 import {
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
-  sendPasswordResetEmail,
   updateProfile,
   UserCredential,
 } from 'firebase/auth';
 import {
   doc,
-  setDoc,
   getDoc,
-  updateDoc,
   serverTimestamp,
+  updateDoc
 } from 'firebase/firestore';
-import { auth, db } from './config';
 import { User } from '../types';
+import { auth, db } from './config';
 
 /**
  * Register a new user with email, password and username.
@@ -41,7 +40,6 @@ export async function registerUser(
     createdAt: now,
   };
 
-  await setDoc(doc(db, 'users', user.uid), userData);
 
   // Return the full user doc (createdAt will be server-resolved)
   return {

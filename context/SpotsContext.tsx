@@ -2,9 +2,10 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from 'react';
-import { Alert } from 'react-native';
+import Toast from 'react-native-toast-message';
 import {
   getAllSpots,
   getSpotById as fetchSpotById,
@@ -36,24 +37,35 @@ export function SpotsProvider({ children }: { children: React.ReactNode }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchSpots = useCallback(async () => {
+    if (!user) return;
     setIsLoading(true);
     try {
       const data = await getAllSpots(50);
       setSpots(data);
-    } catch (error) {
-      Alert.alert('Error', 'Could not load spots. Please try again.');
+    } catch (error: any) {
+      console.log('fetchSpots error:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: error?.message || 'Could not load spots. Please try again.' });
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSpots();
+    } else {
+      setSpots([]);
+    }
+  }, [user, fetchSpots]);
 
   const refreshSpots = useCallback(async () => {
     setIsRefreshing(true);
     try {
       const data = await getAllSpots(50);
       setSpots(data);
-    } catch (error) {
-      Alert.alert('Error', 'Could not refresh spots.');
+    } catch (error: any) {
+      console.log('refreshSpots error:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: error?.message || 'Could not refresh spots.' });
     } finally {
       setIsRefreshing(false);
     }
@@ -82,7 +94,7 @@ export function SpotsProvider({ children }: { children: React.ReactNode }) {
       setSpots((prev) =>
         prev.map((s) =>
           s.id === spotId
-            ? { ...s, ...data, photos: data.photos ?? s.photos }
+            ? { ...s, ...data, location: (data.location ?? s.location) as NonNullable<typeof data.location>, photos: data.photos ?? s.photos }
             : s
         )
       );

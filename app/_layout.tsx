@@ -1,12 +1,12 @@
-import { Stack } from 'expo-router';
-import { useEffect } from 'react';
-import { useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Toast from 'react-native-toast-message';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { SpotsProvider } from '../context/SpotsContext';
 import { FavoritesProvider } from '../context/FavoritesContext';
+import { SpotsProvider } from '../context/SpotsContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -16,6 +16,11 @@ function RootLayoutNav() {
   const segments = useSegments();
 
   useEffect(() => {
+    console.log({
+      user: user?.uid,
+      isLoading,
+      segments,
+    });
     if (isLoading) return;
 
     SplashScreen.hideAsync();
@@ -24,7 +29,7 @@ function RootLayoutNav() {
 
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (user && inAuthGroup) {
+    } else if (user && (inAuthGroup || segments.length === 0 as any)) {
       router.replace('/(tabs)');
     }
   }, [user, isLoading, segments]);
@@ -53,6 +58,7 @@ export default function RootLayout() {
           </FavoritesProvider>
         </SpotsProvider>
       </AuthProvider>
+      <Toast />
     </GestureHandlerRootView>
   );
 }

@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { Alert } from 'react-native';
+import Toast from 'react-native-toast-message';
 import {
   getUserFavorites,
   addFavorite,
@@ -38,8 +38,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       const data = await getUserFavorites(user.uid);
       setFavorites(data);
       setFavoritedIds(new Set(data.map((f) => f.spotId)));
-    } catch {
-      Alert.alert('Error', 'Could not load favorites.');
+    } catch (error: any) {
+      console.log('fetchFavorites error:', error);
+      Toast.show({ type: 'error', text1: 'Error', text2: error?.message || 'Could not load favorites.' });
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +89,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         } else {
           await addFavorite(user.uid, spot);
         }
-      } catch {
+      } catch (error: any) {
         // Revert on failure
         if (isCurrentlyFaved) {
           setFavoritedIds((prev) => new Set(prev).add(spot.id));
@@ -100,7 +101,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           });
           setFavorites((prev) => prev.filter((f) => f.spotId !== spot.id));
         }
-        Alert.alert('Error', 'Could not update favorites. Please try again.');
+        console.log('toggleFavorite error:', error);
+        Toast.show({ type: 'error', text1: 'Error', text2: error?.message || 'Could not update favorites. Please try again.' });
       }
     },
     [user, favoritedIds]
