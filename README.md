@@ -1,50 +1,156 @@
-# Welcome to your Expo app 👋
+<div align="center">
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# 📸 FrameFinder
 
-## Get started
+**Discover. Capture. Share.**
 
-1. Install dependencies
+A React Native app for photographers to discover, save, and share the best photography spots — built with Expo, Firebase, and a fully custom dark-mode design system.
 
-   ```bash
-   npm install
-   ```
+</div>
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## About
 
-In the output, you'll find options to open the app in a
+FrameFinder is a community-driven photography spot finder. Users browse and upload locations worth photographing — waterfalls, city skylines, sunrise points, hidden street corners — complete with the best time to shoot, exact coordinates, and real photos from people who've been there. Every spot can be saved to favorites, and any spot can be turned into a shareable, branded story card in a couple of taps.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+The app is built entirely with React Native's core `StyleSheet` API — no Tailwind, no NativeWind — with a hand-tuned design system (warm cream and golden-hour orange on near-black surfaces) meant to evoke film photography rather than a generic app template.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## ✨ Features
 
-When you're ready, run:
+**Discover**
+- Browse a live feed of photography spots with category filtering (Beach, Mountain, Waterfall, Forest, Wildlife, Architecture, Street, City, Sunrise, Sunset, and more)
+- Instant local search across spot name, category, description, and owner — no extra network requests as you type
 
-```bash
-npm run reset-project
+**Spot Details**
+- Full spot profile: photo gallery, description, best time to shoot, GPS coordinates, and the contributor who added it
+- Save any spot to your favorites with a single tap
+
+**Add & Manage**
+- Upload 1–3 photos per spot, tag a category, and attach your current GPS location in a few steps
+- Edit or delete spots you've added
+
+**Share**
+- Generate a branded, Instagram-Story-ready share card for any spot (captured on-device with `react-native-view-shot`)
+- Share natively, save straight to your gallery, or export the original full-quality photo
+
+**Account**
+- Email/password authentication via Firebase Auth
+- Optional biometric login (Face ID / Fingerprint) after your first sign-in
+- Personal profile with your uploaded spots and stats
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | React Native + Expo (Managed Workflow) |
+| Language | TypeScript |
+| Routing | Expo Router (file-based) |
+| Auth | Firebase Authentication |
+| Database | Cloud Firestore |
+| Media Storage | Firebase Storage |
+| Styling | React Native `StyleSheet` (no CSS frameworks) |
+| Image Handling | `expo-image`, `expo-image-manipulator`, `expo-image-picker` |
+| Location | `expo-location` |
+| Share Cards | `react-native-view-shot`, `expo-sharing`, `expo-media-library` |
+| Biometrics | `expo-local-authentication`, `expo-secure-store` |
+| Animation | `react-native-reanimated` |
+
+---
+
+## 📱 App Structure
+
+FrameFinder has 5 primary tabs — **Discover**, **Search**, **Add**, **Saved**, and **Profile** — plus a dedicated spot detail stack for viewing, editing, and sharing individual spots.
+
+```
+framefinder/
+├── app/                    # Expo Router screens (file-based routing)
+│   ├── (auth)/              # Login & register
+│   ├── (tabs)/               # Bottom tab screens
+│   └── spot/                 # Spot detail, edit, and related routes
+├── components/              # Reusable UI components
+├── constants/                # Design tokens — colors, typography, spacing, categories
+├── context/                  # App-wide state (auth, spots, favorites)
+├── firebase/                 # Auth, Firestore, and Storage service layers
+├── hooks/                    # Custom hooks (auth, biometrics, share cards)
+├── styles/                   # Shared global StyleSheet objects
+├── types/                    # Shared TypeScript interfaces
+└── assets/images/            # App icons and splash assets
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🚀 Getting Started
 
-To learn more about developing your project with Expo, look at the following resources:
+### Prerequisites
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- [Node.js](https://nodejs.org/) 18+
+- [Expo CLI](https://docs.expo.dev/get-started/installation/) (`npx expo` — no global install required)
+- The [Expo Go](https://expo.dev/go) app, or an Android/iOS emulator
+- A Firebase project (see below)
 
-## Join the community
+### Installation
 
-Join our community of developers creating universal apps.
+```bash
+git clone https://github.com/sandula-sanchana/framefinder.git
+cd framefinder
+npm install
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Firebase Setup
+
+1. Create a project at [console.firebase.google.com](https://console.firebase.google.com)
+2. **Authentication** → Sign-in method → enable **Email/Password**
+3. **Firestore Database** → create in your preferred region, then apply the rules in [`firestore.rules`](./firestore.rules)
+4. **Storage** → enable, then apply the rules in [`storage.rules`](./storage.rules)
+5. Project Settings → add a **Web app** → copy the config object into `firebase/config.ts`
+
+Full step-by-step instructions are in [`SETUP.md`](./SETUP.md).
+
+### Run the App
+
+```bash
+npx expo start
+```
+
+Scan the QR code with Expo Go, or press `a` / `i` to launch an Android/iOS emulator.
+
+---
+
+## 🎨 Design System
+
+FrameFinder uses a single source of truth for its visuals under `constants/`:
+
+- **`Colors.ts`** — near-black backgrounds, warm cream (`#E8D5B7`) as the primary brand tone, golden-hour orange (`#FF6B35`) as the action accent
+- **`Typography.ts`** — a consistent type scale from `xs` (11px) to `display` (36px)
+- **`Spacing.ts`** — an 8-point-based spacing and radius scale
+
+Every screen is built with `StyleSheet.create()` against these tokens — there's no ad-hoc styling anywhere in the codebase.
+
+---
+
+## 🗺 Firestore Data Model
+
+```
+/spots/{spotId}        → title, category, photos, location, owner, favoritesCount, ...
+/users/{uid}            → username, email, profilePicture, spotsCount
+/favorites/{uid}/spots/{spotId}
+```
+
+---
+
+## 📄 License
+
+This project is currently unlicensed / private coursework. Add a license here if you plan to open it up.
+
+---
+
+<div align="center">
+
+Built by [Sandula Sanchana](https://github.com/sandula-sanchana)
+
+</div>
